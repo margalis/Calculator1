@@ -77,8 +77,7 @@ class MainActivity : AppCompatActivity() {
 
     fun NumberAction(view: View) {
         if (view is Button) {
-               //avelacnel, vor  menak mi hat dot lini numberneri mej !
-                   //tarberak , check if number of  operations is less than number of dots BY 1
+
             if (view.text == ".") {
 
                 if (canAddDecimal && workings.text[workings.text.lastIndex].isDigit()) {
