@@ -1,24 +1,22 @@
 package com.example.calculator1
 
+import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.os.PersistableBundle
 import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 
+const val WORKINGS_KEY = "workings_key"
+const val RESULT_KEY ="result_key"
 class MainActivity : AppCompatActivity() {
     lateinit var workings: TextView
     lateinit var result: TextView
 
     private var canAddOperation = false  //for operation adding validation in 'workings' env
     private var canAddDecimal = true// for '.' adding validation in 'workings' env
-
-    fun dotCount() : Int=workings.text.count { it=='.' }
-
-    fun operatorCount() : Int= workings.text.count{ it == '/' } +workings.text.count{ it == 'X' }+
-            workings.text.count{ it == '+' } +workings.text.count{ it == '-' }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,6 +25,11 @@ class MainActivity : AppCompatActivity() {
         val rootLayout = findViewById<LinearLayout>(R.id.root_layout)
         workings = findViewById(R.id.workings)
         result = findViewById(R.id.result)
+
+        savedInstanceState?.let { data->
+            workings.text= data.getString(WORKINGS_KEY)
+            result.text = data.getString(RESULT_KEY)
+        }
 
     }
 
@@ -61,7 +64,17 @@ class MainActivity : AppCompatActivity() {
         println("on Restart")
     }
 
-    //
+   /* override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+
+    }*/
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(WORKINGS_KEY,workings.text?.toString())
+        outState.putString(RESULT_KEY,result.text?.toString())
+    }
+
     fun NumberAction(view: View) {
         if (view is Button) {
                //avelacnel, vor  menak mi hat dot lini numberneri mej !
@@ -91,27 +104,27 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun AllClearAction(view: View) {  // ok
-        //  workings.text=""
+    fun AllClearAction(view: View) {
         workings.text = ""
         result.text = ""
 
     }
 
-    fun BackspaceAction(view: View) {   // ok
+    fun BackspaceAction(view: View) {
         val length = workings.length()
         if (length > 0) {
             workings.text = workings.text.subSequence(0, length - 1)
         }
     }
 
-    fun EqualsAction(view: View) { //ok
-        if(workings.text[workings.text.lastIndex].isDigit())
+    fun EqualsAction(view: View) {
+        if(workings.text.isEmpty()) {  }
+        else if(workings.text[workings.text.lastIndex].isDigit())
              result.text = calculateResult()
        /* if(workings.text.contains(".*\\/0([^.]|$|\\.(0{2,0}.*|0{1,4}([^0-9]|$))).*"))
             result.setText("cant divide by zero!")*/
         else{
-            //vor . kam operator lini verjum , bani tegh chdni
+
         }
     }
 
@@ -140,7 +153,6 @@ class MainActivity : AppCompatActivity() {
                 list.add(character)
             }
         }
-
         if (currentDigit!="")
             list.add(currentDigit.toFloat())
 
@@ -156,41 +168,39 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun calcTimesDiv(passedList: MutableList<Any>): MutableList<Any> {
-        val new_list = mutableListOf<Any>()
+        val newList = mutableListOf<Any>()
         var restartIndex = passedList.size
-
         for(i in passedList.indices){
-            if(passedList[i] is Char &&  i!=passedList.lastIndex && i <restartIndex){
+            if(passedList[i] is Char &&  i!=passedList.lastIndex && i < restartIndex){
                 val operator = passedList[i]
                 val prevDigit = passedList[i-1] as Float
                 val nextDigit = passedList[i+1] as  Float
                 when(operator){
                     'X' ->{
-                        new_list.add(prevDigit * nextDigit)
+                        newList.add(prevDigit * nextDigit)
                         restartIndex = i+1
                     }
                     '/' ->{
-                        new_list.add(prevDigit / nextDigit)
+                        newList.add(prevDigit / nextDigit)
                         restartIndex = i+1
                     }
-                    else ->
-                    {
-                        new_list.add(prevDigit)
-                        new_list.add(operator)
+                    else -> {
+                        newList.add(prevDigit)
+                        newList.add(operator)
                     }
                 }
             }
             if(i> restartIndex){
-                new_list.add(passedList[i])
+                newList.add(passedList[i])
             }
         }
-        return new_list
+        return newList
     }
 
     private fun addSubtractionCalculate(passedList: MutableList<Any>): Float {
-        val list : MutableList<Any> = passedList
+        val list : MutableList<Any> = passedList // just exp
         var result = passedList[0] as Float
-        for(i in list.indices){
+        for(i in list.indices){ // 1 iter avel a
                 if(list[i] is Char) {
                     val operator = list[i]
                     val nextDigit = list[i + 1] as Float
